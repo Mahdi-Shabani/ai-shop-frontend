@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <!-- متا تگ‌های اصلی -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فروشگاه هوشمند | چت‌بات</title>
+    
+    <!-- لینک به فایل استایل -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- فونت وزیرمتن از CDN -->
+    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+    
+    <!-- آیکون‌های Feather -->
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    
+    <!-- ===== کانتینر اصلی ===== -->
+    <div class="app-container">
+        
+        <!-- ===== هدر ===== -->
+        <header class="header">
+            <div class="header-content">
+                <!-- لوگو و عنوان -->
+                <div class="logo">
+                    <span class="logo-icon">🛒</span>
+                    <h1>فروشگاه هوشمند</h1>
+                </div>
+                
+                <!-- دکمه‌های ناوبری -->
+                <nav class="nav-buttons">
+                    <button id="btn-chat" class="nav-btn active">
+                        <i data-feather="message-circle"></i>
+                        <span>چت</span>
+                    </button>
+                    <button id="btn-products" class="nav-btn">
+                        <i data-feather="shopping-bag"></i>
+                        <span>محصولات</span>
+                    </button>
+                </nav>
+            </div>
+        </header>
+        
+        <!-- ===== محتوای اصلی ===== -->
+        <main class="main-content">
+            
+            <!-- ===== بخش چت ===== -->
+            <section id="chat-section" class="section active">
+                
+                <!-- ناحیه نمایش پیام‌ها -->
+                <div id="chat-messages" class="chat-messages">
+                    
+                    <!-- پیام خوش‌آمدگویی بات -->
+                    <div class="message bot-message">
+                        <div class="message-avatar">🤖</div>
+                        <div class="message-content">
+                            <p>سلام! 👋</p>
+                            <p>من دستیار هوشمند فروشگاه هستم. درباره محصولات سوال بپرسید.</p>
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <!-- فرم ارسال پیام -->
+                <form id="chat-form" class="chat-input-container">
+                    <input 
+                        type="text" 
+                        id="message-input" 
+                        class="chat-input" 
+                        placeholder="پیام خود را بنویسید..."
+                        autocomplete="off"
+                        required
+                    >
+                    <button type="submit" id="send-btn" class="send-btn">
+                        <i data-feather="send"></i>
+                    </button>
+                </form>
+                
+            </section>
+            
+            <!-- ===== بخش محصولات ===== -->
+            <section id="products-section" class="section">
+                
+                <!-- هدر بخش محصولات -->
+                <div class="products-header">
+                    <h2>لیست محصولات</h2>
+                    <button id="refresh-products" class="refresh-btn">
+                        <i data-feather="refresh-cw"></i>
+                        <span>بروزرسانی</span>
+                    </button>
+                </div>
+                
+                <!-- گرید محصولات -->
+                <div id="products-grid" class="products-grid">
+                    <!-- محصولات با JS لود می‌شوند -->
+                    <div class="loading-products">
+                        <div class="spinner"></div>
+                        <p>در حال بارگذاری...</p>
+                    </div>
+                </div>
+                
+            </section>
+            
+        </main>
+        
+        <!-- ===== فوتر ===== -->
+        <footer class="footer">
+            <p>ساخته شده با مهدی | فروشگاه هوشمند</p>
+        </footer>
+        
+    </div>
+    
+    <!-- ===== مودال تنظیمات API ===== -->
+    <div id="api-modal" class="modal">
+        <div class="modal-content">
+            <h3>⚙️ تنظیمات اتصال</h3>
+            <div class="form-group">
+                <label for="api-url">آدرس API:</label>
+                <input 
+                    type="url" 
+                    id="api-url" 
+                    value="http://127.0.0.1:8000"
+                    placeholder="http://127.0.0.1:8000"
+                >
+            </div>
+            <div class="modal-buttons">
+                <button id="save-api" class="btn btn-primary">ذخیره</button>
+                <button id="close-modal" class="btn btn-secondary">بستن</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- لینک به فایل اسکریپت -->
+    <script src="script.js"></script>
+    
+</body>
+</html>
