@@ -1,9 +1,6 @@
-
-
-// ===== تنظیمات اولیه =====
 const CONFIG = {
-    // آدرس پیش‌فرض API (قابل تغییر توسط کاربر)
-    apiBaseUrl: localStorage.getItem('apiUrl') || 'http://127.0.0.1:8000',
+    // آدرس API روی Render
+    apiBaseUrl: localStorage.getItem('apiUrl') || 'https://ai-shop-backend-z24o.onrender.com',
     
     // مسیرهای API
     endpoints: {
