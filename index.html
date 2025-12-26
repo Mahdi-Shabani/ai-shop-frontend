@@ -17,7 +17,6 @@
         
         <header class="header">
             <div class="header-content">
-
                 <div class="logo">
                     <span class="logo-icon">🛒</span>
                     <h1>فروشگاه هوشمند</h1>
@@ -31,6 +30,10 @@
                     <button id="btn-products" class="nav-btn">
                         <i data-feather="shopping-bag"></i>
                         <span>محصولات</span>
+                    </button>
+                    <button id="btn-dashboard" class="nav-btn">
+                        <i data-feather="bar-chart-2"></i>
+                        <span>داشبورد</span>
                     </button>
                 </nav>
             </div>
@@ -52,7 +55,6 @@
                     
                 </div>
                 
-                <!-- فرم ارسال پیام -->
                 <form id="chat-form" class="chat-input-container">
                     <input 
                         type="text" 
@@ -88,10 +90,103 @@
                 
             </section>
             
+            <section id="dashboard-section" class="section">
+                
+                <div id="dashboard-login" class="dashboard-login">
+                    <div class="login-card">
+                        <div class="login-icon">🔐</div>
+                        <h2>ورود به پنل فروشنده</h2>
+                        <p>رمز عبور را وارد کنید</p>
+                        
+                        <form id="login-form" class="login-form">
+                            <div class="input-group">
+                                <input 
+                                    type="password" 
+                                    id="dashboard-password" 
+                                    placeholder="رمز عبور..."
+                                    autocomplete="off"
+                                    required
+                                >
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-login">
+                                ورود به داشبورد
+                            </button>
+                            <p id="login-error" class="login-error"></p>
+                        </form>
+                    </div>
+                </div>
+                
+                <div id="dashboard-content" class="dashboard-content">
+                    
+                    <div class="dashboard-header">
+                        <h2>📊 داشبورد فروش</h2>
+                        <button id="logout-btn" class="btn btn-secondary btn-logout">
+                            🚪 خروج
+                        </button>
+                    </div>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card stat-revenue">
+                            <div class="stat-icon">💰</div>
+                            <div class="stat-info">
+                                <span class="stat-label">کل درآمد</span>
+                                <span id="total-revenue" class="stat-value">-</span>
+                                <span class="stat-unit">تومان</span>
+                            </div>
+                        </div>
+                        
+                        <div class="stat-card stat-orders">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-info">
+                                <span class="stat-label">تعداد سفارشات</span>
+                                <span id="total-orders" class="stat-value">-</span>
+                                <span class="stat-unit">سفارش</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3>📈 پرفروش‌ترین محصولات</h3>
+                        <div id="products-chart" class="bar-chart">
+                            <div class="chart-loading">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3>📁 فروش بر اساس دسته‌بندی</h3>
+                        <div id="categories-chart" class="bar-chart">
+                            <div class="chart-loading">
+                                <div class="spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="analysis-card">
+                        <h3>🤖 تحلیل هوشمند</h3>
+                        <div id="ai-analysis" class="analysis-content">
+                            <div class="chart-loading">
+                                <div class="spinner"></div>
+                                <p>در حال تحلیل...</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="suggestions-card">
+                        <h3>💡 پیشنهادات</h3>
+                        <ul id="suggestions-list" class="suggestions-list">
+                        </ul>
+                    </div>
+                    
+                </div>
+                
+            </section>
+            
         </main>
         
         <footer class="footer">
-            <p>ساخته شده با مهدی | فروشگاه هوشمند</p>
+            <p> MTI | فروشگاه هوشمند</p>
         </footer>
         
     </div>
@@ -104,8 +199,8 @@
                 <input 
                     type="url" 
                     id="api-url" 
-                    value="http://127.0.0.1:8000"
-                    placeholder="http://127.0.0.1:8000"
+                    value="https://ai-shop-backend-z24o.onrender.com"
+                    placeholder="https://ai-shop-backend-z24o.onrender.com"
                 >
             </div>
             <div class="modal-buttons">

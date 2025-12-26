@@ -1,33 +1,45 @@
 const CONFIG = {
-    // آدرس API روی Render
+    // آدرس پیش‌فرض API
     apiBaseUrl: localStorage.getItem('apiUrl') || 'https://ai-shop-backend-z24o.onrender.com',
     
     // مسیرهای API
     endpoints: {
         chat: '/api/v1/chatbot/chat',
-        products: '/api/v1/chatbot/products'
+        products: '/api/v1/chatbot/products',
+        dashboardSummary: '/api/v1/dashboard/summary',
+        dashboardAnalyze: '/api/v1/dashboard/analyze'
     },
     
+    // رمز ورود فروشنده
+    sellerPassword: 'admin123',
+    
     // تنظیمات چت
-    typingDelay: 500,  // تاخیر نمایش "در حال تایپ"
+    typingDelay: 500,
     
     // پیام‌های سیستم
     messages: {
         error: 'متأسفم، مشکلی پیش آمد. لطفاً دوباره تلاش کنید.',
         offline: 'اتصال به سرور برقرار نیست.',
-        empty: 'لطفاً پیام خود را وارد کنید.'
+        empty: 'لطفاً پیام خود را وارد کنید.',
+        wrongPassword: '❌ رمز عبور اشتباه است!',
+        loginSuccess: '✅ ورود موفق!'
     }
 };
+
+// ===== وضعیت لاگین فروشنده =====
+let isSellerLoggedIn = false;
 
 // ===== انتخاب المان‌ها =====
 const elements = {
     // ناوبری
     btnChat: document.getElementById('btn-chat'),
     btnProducts: document.getElementById('btn-products'),
+    btnDashboard: document.getElementById('btn-dashboard'),
     
     // بخش‌ها
     chatSection: document.getElementById('chat-section'),
     productsSection: document.getElementById('products-section'),
+    dashboardSection: document.getElementById('dashboard-section'),
     
     // چت
     chatMessages: document.getElementById('chat-messages'),
@@ -38,6 +50,22 @@ const elements = {
     // محصولات
     productsGrid: document.getElementById('products-grid'),
     refreshProducts: document.getElementById('refresh-products'),
+    
+    // داشبورد - لاگین
+    dashboardLogin: document.getElementById('dashboard-login'),
+    dashboardContent: document.getElementById('dashboard-content'),
+    loginForm: document.getElementById('login-form'),
+    dashboardPassword: document.getElementById('dashboard-password'),
+    loginError: document.getElementById('login-error'),
+    logoutBtn: document.getElementById('logout-btn'),
+    
+    // داشبورد - محتوا
+    totalRevenue: document.getElementById('total-revenue'),
+    totalOrders: document.getElementById('total-orders'),
+    productsChart: document.getElementById('products-chart'),
+    categoriesChart: document.getElementById('categories-chart'),
+    aiAnalysis: document.getElementById('ai-analysis'),
+    suggestionsList: document.getElementById('suggestions-list'),
     
     // مودال
     apiModal: document.getElementById('api-modal'),
@@ -53,8 +81,6 @@ const elements = {
 
 /**
  * ساخت URL کامل API
- * @param {string} endpoint - مسیر API
- * @returns {string} - URL کامل
  */
 function getApiUrl(endpoint) {
     return `${CONFIG.apiBaseUrl}${endpoint}`;
@@ -62,12 +88,24 @@ function getApiUrl(endpoint) {
 
 /**
  * فرمت کردن قیمت به تومان
- * @param {number} price - قیمت
- * @returns {string} - قیمت فرمت شده
  */
 function formatPrice(price) {
     if (!price && price !== 0) return 'تماس بگیرید';
     return new Intl.NumberFormat('fa-IR').format(price);
+}
+
+/**
+ * فرمت کردن عدد بزرگ (میلیون/میلیارد)
+ */
+function formatLargeNumber(num) {
+    if (num >= 1000000000) {
+        return (num / 1000000000).toFixed(1) + ' میلیارد';
+    } else if (num >= 1000000) {
+        return (num / 1000000).toFixed(1) + ' میلیون';
+    } else if (num >= 1000) {
+        return (num / 1000).toFixed(1) + ' هزار';
+    }
+    return new Intl.NumberFormat('fa-IR').format(num);
 }
 
 /**
@@ -79,7 +117,6 @@ function scrollToBottom() {
 
 /**
  * غیرفعال/فعال کردن دکمه ارسال
- * @param {boolean} disabled - وضعیت
  */
 function toggleSendButton(disabled) {
     elements.sendBtn.disabled = disabled;
@@ -93,14 +130,15 @@ function toggleSendButton(disabled) {
 
 /**
  * تغییر بخش فعال
- * @param {string} section - نام بخش ('chat' یا 'products')
  */
 function switchSection(section) {
     // حذف کلاس active از همه
     elements.btnChat.classList.remove('active');
     elements.btnProducts.classList.remove('active');
+    elements.btnDashboard.classList.remove('active');
     elements.chatSection.classList.remove('active');
     elements.productsSection.classList.remove('active');
+    elements.dashboardSection.classList.remove('active');
     
     // فعال کردن بخش انتخاب شده
     if (section === 'chat') {
@@ -114,12 +152,23 @@ function switchSection(section) {
         if (elements.productsGrid.querySelector('.loading-products')) {
             loadProducts();
         }
+    } else if (section === 'dashboard') {
+        elements.btnDashboard.classList.add('active');
+        elements.dashboardSection.classList.add('active');
+        
+        // چک کردن وضعیت لاگین
+        if (isSellerLoggedIn) {
+            showDashboardContent();
+        } else {
+            showDashboardLogin();
+        }
     }
 }
 
 // رویدادهای ناوبری
 elements.btnChat.addEventListener('click', () => switchSection('chat'));
 elements.btnProducts.addEventListener('click', () => switchSection('products'));
+elements.btnDashboard.addEventListener('click', () => switchSection('dashboard'));
 
 
 /* ========================================
@@ -128,24 +177,18 @@ elements.btnProducts.addEventListener('click', () => switchSection('products'));
 
 /**
  * افزودن پیام به چت
- * @param {string} content - محتوای پیام
- * @param {string} type - نوع پیام ('user' یا 'bot')
- * @returns {HTMLElement} - المان پیام
  */
 function addMessage(content, type) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}-message`;
     
-    // آواتار
     const avatar = document.createElement('div');
     avatar.className = 'message-avatar';
     avatar.textContent = type === 'user' ? '👤' : '🤖';
     
-    // محتوا
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
     
-    // پردازش متن (تبدیل خط جدید به <p>)
     const paragraphs = content.split('\n').filter(p => p.trim());
     paragraphs.forEach(text => {
         const p = document.createElement('p');
@@ -164,7 +207,6 @@ function addMessage(content, type) {
 
 /**
  * نمایش انیمیشن "در حال تایپ"
- * @returns {HTMLElement} - المان تایپینگ
  */
 function showTypingIndicator() {
     const typingDiv = document.createElement('div');
@@ -188,7 +230,6 @@ function showTypingIndicator() {
 
 /**
  * حذف انیمیشن تایپینگ
- * @param {HTMLElement} typingElement - المان تایپینگ
  */
 function removeTypingIndicator(typingElement) {
     if (typingElement && typingElement.parentNode) {
@@ -197,21 +238,15 @@ function removeTypingIndicator(typingElement) {
 }
 
 /**
- * ارسال پیام به API و دریافت پاسخ
- * @param {string} message - پیام کاربر
+ * ارسال پیام به API
  */
 async function sendMessage(message) {
-    // نمایش پیام کاربر
     addMessage(message, 'user');
-    
-    // غیرفعال کردن ورودی
     toggleSendButton(true);
     
-    // نمایش تایپینگ
     const typingIndicator = showTypingIndicator();
     
     try {
-        // ارسال درخواست به API
         const response = await fetch(getApiUrl(CONFIG.endpoints.chat), {
             method: 'POST',
             headers: {
@@ -220,27 +255,22 @@ async function sendMessage(message) {
             body: JSON.stringify({ message: message })
         });
         
-        // بررسی پاسخ
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
         }
         
         const data = await response.json();
         
-        // حذف تایپینگ
         removeTypingIndicator(typingIndicator);
         
-        // نمایش پاسخ بات
         const botResponse = data.response || data.message || 'پاسخی دریافت نشد.';
         addMessage(botResponse, 'bot');
         
     } catch (error) {
         console.error('Chat Error:', error);
         
-        // حذف تایپینگ
         removeTypingIndicator(typingIndicator);
         
-        // نمایش پیام خطا
         let errorMessage = CONFIG.messages.error;
         if (error.message.includes('Failed to fetch')) {
             errorMessage = CONFIG.messages.offline + ' آدرس API را بررسی کنید.';
@@ -248,13 +278,12 @@ async function sendMessage(message) {
         addMessage(errorMessage, 'bot');
         
     } finally {
-        // فعال کردن ورودی
         toggleSendButton(false);
         elements.messageInput.focus();
     }
 }
 
-// رویداد ارسال فرم
+// رویداد ارسال فرم چت
 elements.chatForm.addEventListener('submit', (e) => {
     e.preventDefault();
     
@@ -264,18 +293,8 @@ elements.chatForm.addEventListener('submit', (e) => {
         return;
     }
     
-    // پاک کردن ورودی
     elements.messageInput.value = '';
-    
-    // ارسال پیام
     sendMessage(message);
-});
-
-// ارسال با Enter (پیش‌فرض فرم)
-elements.messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        // فرم خودش هندل می‌کنه
-    }
 });
 
 
@@ -285,14 +304,11 @@ elements.messageInput.addEventListener('keypress', (e) => {
 
 /**
  * ساخت کارت محصول
- * @param {Object} product - اطلاعات محصول
- * @returns {HTMLElement} - کارت محصول
  */
 function createProductCard(product) {
     const card = document.createElement('div');
     card.className = 'product-card';
     
-    // تعیین وضعیت موجودی
     let stockClass = 'in-stock';
     let stockText = 'موجود';
     
@@ -306,7 +322,6 @@ function createProductCard(product) {
         stockText = `${stock} عدد`;
     }
     
-    // تصویر پیش‌فرض
     const imageUrl = product.image || product.image_url || 
         'https://via.placeholder.com/300x180/1a1a25/ff6b00?text=📦';
     
@@ -330,7 +345,6 @@ function createProductCard(product) {
         </div>
     `;
     
-    // کلیک روی کارت برای سوال درباره محصول
     card.addEventListener('click', () => {
         switchSection('chat');
         const question = `درباره محصول "${product.name}" بیشتر توضیح بده`;
@@ -355,7 +369,6 @@ function showProductsLoading() {
 
 /**
  * نمایش خطای محصولات
- * @param {string} message - پیام خطا
  */
 function showProductsError(message) {
     elements.productsGrid.innerHTML = `
@@ -383,7 +396,6 @@ async function loadProducts() {
         
         const data = await response.json();
         
-        // استخراج لیست محصولات
         const products = data.products || data.data || data || [];
         
         if (products.length === 0) {
@@ -391,13 +403,10 @@ async function loadProducts() {
             return;
         }
         
-        // پاک کردن گرید
         elements.productsGrid.innerHTML = '';
         
-        // ساخت کارت‌ها
         products.forEach((product, index) => {
             const card = createProductCard(product);
-            // انیمیشن ورود با تاخیر
             card.style.animationDelay = `${index * 0.1}s`;
             elements.productsGrid.appendChild(card);
         });
@@ -416,6 +425,280 @@ async function loadProducts() {
 
 // رویداد رفرش محصولات
 elements.refreshProducts.addEventListener('click', loadProducts);
+
+
+/* ========================================
+   سیستم داشبورد - جدید
+   ======================================== */
+
+/**
+ * نمایش صفحه لاگین
+ */
+function showDashboardLogin() {
+    elements.dashboardLogin.style.display = 'flex';
+    elements.dashboardContent.style.display = 'none';
+    elements.dashboardContent.classList.remove('active');
+    elements.dashboardPassword.value = '';
+    elements.loginError.textContent = '';
+    elements.dashboardPassword.focus();
+}
+
+/**
+ * نمایش محتوای داشبورد
+ */
+function showDashboardContent() {
+    elements.dashboardLogin.style.display = 'none';
+    elements.dashboardContent.style.display = 'block';
+    elements.dashboardContent.classList.add('active');
+    loadDashboard();
+}
+
+/**
+ * چک کردن رمز عبور فروشنده
+ */
+function checkSellerPassword(password) {
+    if (password === CONFIG.sellerPassword) {
+        isSellerLoggedIn = true;
+        elements.loginError.textContent = '';
+        showDashboardContent();
+        return true;
+    } else {
+        elements.loginError.textContent = CONFIG.messages.wrongPassword;
+        elements.dashboardPassword.value = '';
+        elements.dashboardPassword.focus();
+        
+        // لرزش کارت لاگین
+        const loginCard = document.querySelector('.login-card');
+        loginCard.style.animation = 'shake 0.5s ease';
+        setTimeout(() => {
+            loginCard.style.animation = '';
+        }, 500);
+        
+        return false;
+    }
+}
+
+/**
+ * خروج فروشنده
+ */
+function logoutSeller() {
+    isSellerLoggedIn = false;
+    showDashboardLogin();
+}
+
+/**
+ * لود داده‌های داشبورد
+ */
+async function loadDashboard() {
+    // نمایش لودینگ
+    showDashboardLoading();
+    
+    try {
+        // دریافت خلاصه فروش
+        const summaryResponse = await fetch(getApiUrl(CONFIG.endpoints.dashboardSummary));
+        
+        if (!summaryResponse.ok) {
+            throw new Error(`HTTP Error: ${summaryResponse.status}`);
+        }
+        
+        const summaryData = await summaryResponse.json();
+        
+        // نمایش آمار
+        renderStats(summaryData);
+        
+        // نمایش نمودار محصولات
+        renderChart('products-chart', summaryData.top_products, 'quantity', 'primary');
+        
+        // نمایش نمودار دسته‌بندی‌ها
+        renderChart('categories-chart', summaryData.top_categories, 'quantity', 'accent');
+        
+        // دریافت تحلیل هوشمند
+        loadAnalysis();
+        
+    } catch (error) {
+        console.error('Dashboard Error:', error);
+        showDashboardError();
+    }
+}
+
+/**
+ * نمایش لودینگ داشبورد
+ */
+function showDashboardLoading() {
+    elements.totalRevenue.textContent = '...';
+    elements.totalOrders.textContent = '...';
+    
+    const loadingHTML = `
+        <div class="chart-loading">
+            <div class="spinner"></div>
+        </div>
+    `;
+    
+    elements.productsChart.innerHTML = loadingHTML;
+    elements.categoriesChart.innerHTML = loadingHTML;
+    elements.aiAnalysis.innerHTML = `
+        <div class="chart-loading">
+            <div class="spinner"></div>
+            <p>در حال تحلیل...</p>
+        </div>
+    `;
+    elements.suggestionsList.innerHTML = '';
+}
+
+/**
+ * نمایش خطای داشبورد
+ */
+function showDashboardError() {
+    elements.totalRevenue.textContent = 'خطا';
+    elements.totalOrders.textContent = 'خطا';
+    
+    const errorHTML = `
+        <div class="chart-loading">
+            <p>⚠️ خطا در بارگذاری</p>
+            <button onclick="loadDashboard()" class="btn btn-primary" style="margin-top: 1rem;">
+                تلاش مجدد
+            </button>
+        </div>
+    `;
+    
+    elements.productsChart.innerHTML = errorHTML;
+    elements.categoriesChart.innerHTML = errorHTML;
+    elements.aiAnalysis.innerHTML = errorHTML;
+}
+
+/**
+ * نمایش آمار
+ */
+function renderStats(data) {
+    elements.totalRevenue.textContent = formatLargeNumber(data.total_revenue || 0);
+    elements.totalOrders.textContent = new Intl.NumberFormat('fa-IR').format(data.total_orders || 0);
+}
+
+/**
+ * رندر نمودار میله‌ای CSS
+ */
+function renderChart(containerId, data, valueKey, colorClass) {
+    const container = document.getElementById(containerId);
+    
+    if (!data || data.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">داده‌ای موجود نیست</p>';
+        return;
+    }
+    
+    // پیدا کردن بیشترین مقدار برای محاسبه درصد
+    const maxValue = Math.max(...data.map(item => item[valueKey] || 0));
+    
+    // رنگ‌های مختلف برای نوارها
+    const colors = ['primary', 'accent', 'success', 'warning'];
+    
+    let html = '';
+    
+    data.forEach((item, index) => {
+        const value = item[valueKey] || 0;
+        const percentage = maxValue > 0 ? (value / maxValue) * 100 : 0;
+        const barColor = colorClass === 'mixed' ? colors[index % colors.length] : colorClass;
+        
+        html += `
+            <div class="bar-item">
+                <span class="bar-label">${item.name || 'نامشخص'}</span>
+                <div class="bar-container">
+                    <div class="bar-fill ${barColor}" style="width: ${percentage}%"></div>
+                </div>
+                <span class="bar-value">${new Intl.NumberFormat('fa-IR').format(value)}</span>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+/**
+ * لود تحلیل هوشمند
+ */
+async function loadAnalysis() {
+    try {
+        const response = await fetch(getApiUrl(CONFIG.endpoints.dashboardAnalyze), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ question: 'وضعیت فروش من چطوره؟ تحلیل کن و پیشنهاد بده.' })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // نمایش تحلیل
+        renderAnalysis(data.analysis);
+        
+        // نمایش پیشنهادات
+        renderSuggestions(data.suggestions);
+        
+    } catch (error) {
+        console.error('Analysis Error:', error);
+        elements.aiAnalysis.innerHTML = `
+            <p>⚠️ خطا در دریافت تحلیل</p>
+            <button onclick="loadAnalysis()" class="btn btn-primary" style="margin-top: 1rem;">
+                تلاش مجدد
+            </button>
+        `;
+    }
+}
+
+/**
+ * نمایش تحلیل
+ */
+function renderAnalysis(analysis) {
+    if (!analysis) {
+        elements.aiAnalysis.innerHTML = '<p>تحلیلی موجود نیست.</p>';
+        return;
+    }
+    
+    const paragraphs = analysis.split('\n').filter(p => p.trim());
+    let html = '';
+    
+    paragraphs.forEach(p => {
+        html += `<p>${p}</p>`;
+    });
+    
+    elements.aiAnalysis.innerHTML = html;
+}
+
+/**
+ * نمایش پیشنهادات
+ */
+function renderSuggestions(suggestions) {
+    if (!suggestions || suggestions.length === 0) {
+        elements.suggestionsList.innerHTML = '<li class="suggestion-item"><span class="suggestion-text">پیشنهادی موجود نیست.</span></li>';
+        return;
+    }
+    
+    let html = '';
+    
+    suggestions.forEach(suggestion => {
+        html += `
+            <li class="suggestion-item">
+                <span class="suggestion-icon">✅</span>
+                <span class="suggestion-text">${suggestion}</span>
+            </li>
+        `;
+    });
+    
+    elements.suggestionsList.innerHTML = html;
+}
+
+// رویداد فرم لاگین
+elements.loginForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const password = elements.dashboardPassword.value.trim();
+    checkSellerPassword(password);
+});
+
+// رویداد دکمه خروج
+elements.logoutBtn.addEventListener('click', logoutSeller);
 
 
 /* ========================================
@@ -448,14 +731,11 @@ function saveApiUrl() {
         return;
     }
     
-    // ذخیره در localStorage
     localStorage.setItem('apiUrl', newUrl);
     CONFIG.apiBaseUrl = newUrl;
     
-    // بستن مودال
     closeModal();
     
-    // نمایش پیام موفقیت
     addMessage('✅ آدرس API با موفقیت تغییر کرد.', 'bot');
 }
 
@@ -463,14 +743,12 @@ function saveApiUrl() {
 elements.saveApiBtn.addEventListener('click', saveApiUrl);
 elements.closeModalBtn.addEventListener('click', closeModal);
 
-// بستن با کلیک بیرون مودال
 elements.apiModal.addEventListener('click', (e) => {
     if (e.target === elements.apiModal) {
         closeModal();
     }
 });
 
-// بستن با ESC
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && elements.apiModal.classList.contains('active')) {
         closeModal();
@@ -492,6 +770,11 @@ function init() {
     console.log('🚀 فروشگاه هوشمند راه‌اندازی شد');
     console.log(`📡 API: ${CONFIG.apiBaseUrl}`);
     
+    // فعال‌سازی آیکون‌های Feather
+    if (typeof feather !== 'undefined') {
+        feather.replace();
+    }
+    
     // فوکوس روی ورودی چت
     elements.messageInput.focus();
     
@@ -511,6 +794,21 @@ document.addEventListener('DOMContentLoaded', init);
    توابع عمومی (برای استفاده در HTML)
    ======================================== */
 
-// در دسترس قرار دادن توابع در window
 window.loadProducts = loadProducts;
+window.loadDashboard = loadDashboard;
+window.loadAnalysis = loadAnalysis;
 window.openModal = openModal;
+
+
+/* ========================================
+   انیمیشن لرزش (برای خطای رمز)
+   ======================================== */
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+`;
+document.head.appendChild(shakeStyle);

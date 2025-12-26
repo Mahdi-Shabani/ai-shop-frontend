@@ -5,44 +5,53 @@
 }
 
 :root {
+    /* رنگ‌های اسپرت - نارنجی و تیره */
     --primary-color: #ff6b00;
     --primary-hover: #ff8533;
     --primary-light: #fff2e6;
     --primary-dark: #cc5500;
     
+    /* رنگ‌های اکسنت */
     --accent-color: #00d4ff;
     --accent-glow: rgba(0, 212, 255, 0.3);
     
+    /* رنگ‌های ثانویه */
     --success-color: #00ff88;
     --warning-color: #ffcc00;
     --danger-color: #ff4757;
     
+    /* رنگ‌های تیره - پس‌زمینه */
     --bg-color: #0a0a0f;
     --bg-secondary: #12121a;
     --card-bg: #1a1a25;
     --card-hover: #22222f;
     
+    /* رنگ‌های متن */
     --text-primary: #ffffff;
     --text-secondary: #8888aa;
     --border-color: #2a2a3a;
     
+    /* رنگ‌های چت */
     --user-msg-bg: linear-gradient(135deg, #ff6b00, #ff8533);
     --user-msg-text: #ffffff;
     --bot-msg-bg: #22222f;
     --bot-msg-text: #ffffff;
     
+    /* سایه‌ها و گلو */
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.5);
     --glow-primary: 0 0 20px rgba(255, 107, 0, 0.4);
     --glow-accent: 0 0 20px rgba(0, 212, 255, 0.3);
     
+    /* بوردر ردیوس */
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 16px;
     --radius-xl: 24px;
     --radius-full: 9999px;
     
+    /* ترنزیشن */
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -58,6 +67,7 @@ body {
     line-height: 1.6;
     min-height: 100vh;
     direction: rtl;
+    /* پترن پس‌زمینه */
     background-image: 
         radial-gradient(circle at 20% 50%, rgba(255, 107, 0, 0.08) 0%, transparent 50%),
         radial-gradient(circle at 80% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
@@ -113,6 +123,7 @@ body {
     background-clip: text;
 }
 
+/* دکمه‌های ناوبری */
 .nav-buttons {
     display: flex;
     gap: 0.5rem;
@@ -379,7 +390,7 @@ body {
     color: var(--text-secondary);
 }
 
-/* ===== دکمه ارسال - اصلاح شده ===== */
+/* ===== دکمه ارسال ===== */
 .send-btn {
     width: 52px;
     height: 52px;
@@ -428,7 +439,7 @@ body {
     border-right-color: var(--text-secondary);
 }
 
-/* مخفی کردن آیکون feather اگر لود نشد */
+/* مخفی کردن آیکون feather */
 .send-btn svg {
     display: none;
 }
@@ -649,6 +660,382 @@ body {
 }
 
 /* ========================================
+   بخش داشبورد - جدید
+   ======================================== */
+
+/* صفحه لاگین */
+.dashboard-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 2rem;
+}
+
+.login-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    padding: 3rem 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    animation: fadeIn 0.5s ease;
+}
+
+.login-icon {
+    font-size: 4rem;
+    margin-bottom: 1.5rem;
+    filter: drop-shadow(0 0 20px rgba(255, 107, 0, 0.5));
+}
+
+.login-card h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.login-card > p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.input-group {
+    position: relative;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 1rem 1.25rem;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: var(--glow-primary);
+}
+
+.input-group input::placeholder {
+    color: var(--text-secondary);
+}
+
+.btn-login {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+.login-error {
+    color: var(--danger-color);
+    font-size: 0.9rem;
+    min-height: 1.5rem;
+    margin-top: 0.5rem;
+}
+
+/* محتوای داشبورد */
+.dashboard-content {
+    display: none;
+    animation: fadeIn 0.5s ease;
+}
+
+.dashboard-content.active {
+    display: block;
+}
+
+/* هدر داشبورد */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.dashboard-header h2 {
+    font-size: 1.75rem;
+    color: var(--text-primary);
+}
+
+.btn-logout {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.9rem;
+    border: 2px solid var(--danger-color);
+    color: var(--danger-color);
+    background: transparent;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-logout:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+/* کارت‌های آمار */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    opacity: 0.1;
+    transform: translate(30%, -30%);
+}
+
+.stat-revenue::before {
+    background: var(--success-color);
+}
+
+.stat-orders::before {
+    background: var(--accent-color);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+}
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.stat-revenue .stat-value {
+    color: var(--success-color);
+}
+
+.stat-orders .stat-value {
+    color: var(--accent-color);
+}
+
+.stat-unit {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* کارت‌های نمودار و تحلیل */
+.chart-card,
+.analysis-card,
+.suggestions-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-card h3,
+.analysis-card h3,
+.suggestions-card h3 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* نمودار میله‌ای CSS */
+.bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.chart-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    gap: 1rem;
+    color: var(--text-secondary);
+}
+
+.chart-loading .spinner {
+    width: 36px;
+    height: 36px;
+}
+
+.bar-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.bar-label {
+    width: 120px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    text-align: right;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bar-container {
+    flex: 1;
+    height: 28px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: var(--radius-sm);
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-width: 2%;
+}
+
+.bar-fill.primary {
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-hover));
+    box-shadow: 0 0 15px rgba(255, 107, 0, 0.4);
+}
+
+.bar-fill.accent {
+    background: linear-gradient(90deg, var(--accent-color), #00b8e6);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+}
+
+.bar-fill.success {
+    background: linear-gradient(90deg, var(--success-color), #00cc6a);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+}
+
+.bar-fill.warning {
+    background: linear-gradient(90deg, var(--warning-color), #e6b800);
+    box-shadow: 0 0 15px rgba(255, 204, 0, 0.4);
+}
+
+.bar-value {
+    width: 60px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: left;
+    flex-shrink: 0;
+}
+
+/* تحلیل هوشمند */
+.analysis-content {
+    color: var(--text-primary);
+    line-height: 1.8;
+    font-size: 1rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    min-height: 100px;
+}
+
+.analysis-content p {
+    margin-bottom: 0.75rem;
+}
+
+.analysis-content p:last-child {
+    margin-bottom: 0;
+}
+
+/* پیشنهادات */
+.suggestions-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.suggestion-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-md);
+    border-right: 3px solid var(--success-color);
+    transition: var(--transition);
+}
+
+.suggestion-item:hover {
+    background: var(--card-hover);
+    transform: translateX(-4px);
+}
+
+.suggestion-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.suggestion-text {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* ========================================
    مودال
    ======================================== */
 .modal {
@@ -824,6 +1211,30 @@ body {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
         gap: 1rem;
     }
+    
+    /* داشبورد ریسپانسیو */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .bar-label {
+        width: 80px;
+        font-size: 0.8rem;
+    }
+    
+    .bar-value {
+        width: 50px;
+        font-size: 0.8rem;
+    }
+    
+    .login-card {
+        padding: 2rem 1.5rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -853,13 +1264,37 @@ body {
     .products-grid {
         grid-template-columns: 1fr;
     }
+    
+    .stat-card {
+        padding: 1.25rem;
+    }
+    
+    .stat-icon {
+        font-size: 2rem;
+        width: 56px;
+        height: 56px;
+    }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .bar-item {
+        flex-wrap: wrap;
+    }
+    
+    .bar-label {
+        width: 100%;
+        text-align: right;
+        margin-bottom: 0.25rem;
+    }
+    
+    .bar-container {
+        flex: 1;
+    }
 }
 
-/* ========================================
-   افکت‌های اضافی اسپرت
-   ======================================== */
 
-/* پالس برای عناصر مهم */
 @keyframes pulse {
     0%, 100% {
         box-shadow: var(--glow-primary);
@@ -869,18 +1304,17 @@ body {
     }
 }
 
-/* افکت شاین */
-@keyframes shine {
-    0% {
-        background-position: -200% center;
-    }
-    100% {
-        background-position: 200% center;
-    }
-}
-
-/* برای دکمه‌ها در حالت هاور */
 .send-btn:hover,
 .btn-primary:hover {
     animation: pulse 1.5s infinite;
+}
+
+@keyframes barGrow {
+    from {
+        width: 0;
+    }
+}
+
+.bar-fill {
+    animation: barGrow 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
